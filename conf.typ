@@ -187,7 +187,7 @@
   if settings.contents_page.enabled {
     make_toc(info: info)
   }
-
+    set math.equation(numbering: "(1)", supplement: [])
   doc
 
   /*let count = authors.len()
