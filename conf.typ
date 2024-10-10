@@ -35,12 +35,11 @@
     [10.05.01 --- Компьютерная безопасность],
     [02.03.03 --- Математическое обеспечение и администрирование информационных систем],
     [09.03.04 --- Программная инженерия],
-    [44.03.01 --- Педагогическое образование],
+    [], // x6x
     [09.04.01 --- Информатика и вычислительная техника],
     [02.04.03 --- Математическое обеспечение и администрирование информационных систем],
-    [27.03.03 --- Системный анализ и управление],
+    [], // x8x
   )
-  
   if group.at(1) == "7" { // x7x
     if group.at(2) == "1" { // x71
       return specialities.at(6) // ивт
@@ -57,12 +56,26 @@
   return specialities.at(id)
 }
 
-#let referat_title(info) = {
+#let default_title(type, info) = {
   let author = info.at("author", default: (:))
   set align(center)
   v(3cm)
-  text(weight: "bold", upper(info.at("title", default: [Тема работы])))
-  par[РЕФЕРАТ]
+    if type == "autoref" {
+        info.title = [АВТОРЕФЕРАТ]
+    }
+    if type == "nir" {
+        info.title = [ОТЧЁТ О НАУЧНО-ИССЛЕДОВАТЕЛЬСКОЙ РАБОТЕ]
+    }
+    text(weight: "bold", upper(info.at("title", default: [Тема работы])))
+    let worktypes = (
+        referat: [РЕФЕРАТ],
+        coursework: [КУРСОВАЯ РАБОТА],
+        diploma: [Выпускная квалификационная работа],
+        autoref: [работа],
+        nir: [работа],
+        pract: [Отчёт о практике]
+    )
+    par(worktypes.at(type, default: []))
   v(1.5cm)
   set align(left)
   let author_string = get_student_word(author.at("sex", default: "male"))
@@ -79,8 +92,13 @@
   signature(info.inspector.degree, info.inspector.name)
 }
 
+#let otchet_title(info) = {
+    let author = info.at("author", default: (:))
+    set align(center)
+}
+
 #let make_title(
-  type: "referat",
+  type: str, 
   info: ()
 ) = {
   set page(
@@ -93,10 +111,8 @@
     )
   )
   
-  header()
-  if type == "referat" {
-    referat_title(info)
-  }
+    header()
+    default_title(type, info)
   
   v(1fr)
   set align(center)
@@ -147,12 +163,15 @@
     [Содержание],
     [Введение],
     [Заключение],
-    [Список использованных источников]
+    [Список использованных источников],
+    [Определения, обозначения и сокращения],
+    [Обозначения и сокращения]
   )
   show heading: it => {
     set text(size: 14pt)
     if it.depth == 1 {
-      pagebreak(weak: true)
+        pagebreak(weak: true)
+        v(4.3pt * (3 + 1 - 0.2))
     }
     if caps_headings.contains(it.body) {
       set align(center)
@@ -161,6 +180,7 @@
     } else {
       it
     }
+    v(4.3pt * (0.4 + 0.2))
   }
   set heading(numbering: "1.1")
   set page(numbering: "1")
