@@ -157,6 +157,12 @@
       "1"
     )
   ])
+
+  set par(
+    first-line-indent: 1.25cm,
+    hanging-indent: 0em,      
+    justify: true,
+  )
   
   
   let caps_headings = (
