@@ -184,6 +184,11 @@
   }
   set heading(numbering: "1.1")
   set page(numbering: "1")
+  // Отступ начала абазаца 1.25 см и выравнивание по ширине
+  set par(
+    first-line-indent: 1.25cm, 
+    justify: true
+  )
   if settings.contents_page.enabled {
     make_toc(info: info)
   }
