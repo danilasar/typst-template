@@ -1,6 +1,7 @@
 Пример использования:
 ```typst
 #import "conf.typ" : conf
+#import "conf.typ" : turn-on-first-line-indentation
 #show: conf.with(
   title: [Тема работы],
   type: "referat",
