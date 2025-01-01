@@ -126,12 +126,14 @@
 				let sex = self.author_info.get_author_sex(author)
 				let course = self.author_info.get_author_course(author)
 				let group = self.author_info.get_author_group(author)
-				let result = ""
-				if (type(sex) == str) and (sex.len() > 0) {
-					result = result + sex
-				}
-
-				author_string = author_string + " " + author.group.at(0) + " курса " + author.group + " группы\n"
+                if course.len() > 0 {
+                    course = self.uitls.strglue(course, "курса")
+                }
+                if group.len() > 0 {
+                    group = self.utils.strglue(group, "группа")
+                }
+				let result = self.utils.strglue(sex, course, group) + "\n"
+                return result
 			},
 		_default_title:
 			(self, type, info) => {
