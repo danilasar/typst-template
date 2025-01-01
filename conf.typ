@@ -121,6 +121,9 @@
 					post, block(inset: (y: 13pt), line(length: 3cm, stroke: .4pt)), name
 				)
 			},
+        /*
+         * Строка "студента такой-то группы" для титульного листа
+         */
 		_get_author_string:
 			(self, author) => {
 				let sex = self.author_info.get_author_sex(author)
