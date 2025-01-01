@@ -18,7 +18,16 @@
 		sgu: "«САРАТОВСКИЙ НАЦИОНАЛЬНЫЙ ИССЛЕДОВАТЕЛЬСКИЙ
 ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ
 ИМЕНИ Н. Г. ЧЕРНЫШЕВСКОГО»\n",
-		city: "Саратов"
+		city: "Саратов",
+        worktypes: (
+			referat: [РЕФЕРАТ],
+			coursework: [КУРСОВАЯ РАБОТА],
+            diploma: [Выпускная квалификационная работа],
+			autoref: [работа],
+			nir: [работа],
+			pract: [Отчёт о практике]
+        ),
+        
 	),
 	student: (
 		male: "студента",
@@ -150,15 +159,7 @@
 						info.title = [ОТЧЁТ О НАУЧНО-ИССЛЕДОВАТЕЛЬСКОЙ РАБОТЕ]
 				}
 				text(weight: "bold", upper(info.at("title", default: [Тема работы])))
-				let worktypes = (
-						referat: [РЕФЕРАТ],
-						coursework: [КУРСОВАЯ РАБОТА],
-						diploma: [Выпускная квалификационная работа],
-						autoref: [работа],
-						nir: [работа],
-						pract: [Отчёт о практике]
-				)
-				par(worktypes.at(type, default: []))
+				par(strings.title.worktypes.at(type, default: []))
 				v(1.5cm)
 				set align(left)
 				let author_string = get_student_word(author.at("sex"))
