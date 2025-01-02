@@ -12,6 +12,9 @@
  * - Чтобы не засорять кодовую базу, строковые константы вынесены в
  *   переменную strings.
  */
+
+
+
 #let strings = (
 	title: (
 		minobrnauki: "МИНОБРНАУКИ РОССИИ\nФедеральное государственное бюджетное образовательное учреждение\nвысшего образования\n",
@@ -28,7 +31,8 @@
 			pract: [Отчёт о практике]
 		),
 		from_course: "курса",
-		from_group: "группы"
+		from_group: "группы",
+		from_speciality: "направления"
 	),
 	student: (
 		male: "студента",
@@ -45,7 +49,8 @@
 		mag_moais: [02.04.03 --- Математическое обеспечение и администрирование информационных систем],
 	),
 	error: (
-		no_sex: [*6.21 КоАП РФ*]
+		no_sex: [*6.21 КоАП РФ*],
+		undefined_spec: [*НЕИЗВЕСТНАЯ СПЕЦИАЛЬНОСТЬ*]
 	)
 )
 
@@ -53,34 +58,6 @@
 
 #let get_student_word(sex) = {
 	return strings.student.at(sex, default: strings.error.no_sex)
-}
-
-#let get_speciality(group) = {
-	let specialities = (
-		strings.specialities.bac_fiit,
-		strings.specialities.bac_ivt,
-		strings.specialities.spec_kb,
-		strings.specialities.bac_moais,
-		strings.specialities.bac_pi,
-		[], // x6x
-		strings.specialities.mag_ivt,
-		strings.specialities.mag_moais,
-		[], // x8x
-	)
-	if group.at(1) == "7" { // x7x
-		if group.at(2) == "1" { // x71
-			return specialities.at(6) // ивт
-		} else if group.at(2) == "3" {	// x73
-			return specialities.at(7) // моаис
-		}
-		return []
-	}
-	let id = int(group.at(1)) - 1;
-	
-	if id < 0 or id > 8 {
-		return []
-	}
-	return specialities.at(id)
 }
 
 #let otchet_title(info) = {
@@ -102,6 +79,39 @@
 		get_author_group:
 			(author) => {
 				return author.group
+			},
+		get_speciality:
+			(author) => {
+				if author.at("speciality", default: none) != none {
+					return author.speciality
+				} else if author.faculty == [КНиИТ] {
+					let specialities = (
+						strings.specialities.bac_fiit,
+						strings.specialities.bac_ivt,
+						strings.specialities.spec_kb,
+						strings.specialities.bac_moais,
+						strings.specialities.bac_pi,
+						[], // x6x
+						strings.specialities.mag_ivt,
+						strings.specialities.mag_moais,
+						[], // x8x
+					)
+					if author.group.at(1) == "7" { // x7x
+						if author.group.at(2) == "1" { // x71
+							return specialities.at(6) // ивт
+						} else if author.group.at(2) == "3" {	// x73
+							return specialities.at(7) // моаис
+						}
+						return []
+					}
+					let id = int(author.group.at(1)) - 1;
+					
+					if id < 0 or id > 8 {
+						return []
+					}
+					return specialities.at(id)
+				}
+				return strings.error.undefined_spec
 			}
 	),
 	title: (
@@ -109,7 +119,7 @@
 		 * Отвечает за вывод названия университета
 		 * на титульном листе
 		 */
-		_header:
+		_default_header:
 			() => {
 				set align(center)
 				set text(font: "Tempora")
@@ -118,11 +128,22 @@
 				text(weight: "bold", strings.title.sgu)
 				set align(left)
 			},
+		_default_body:
+			(data) => {
+				set align(center)
+				v(3cm)
+				text(weight: "bold", upper(data.title))
+				par(data.worktype)
+				v(1.5cm)
+				set align(left)
+				text(data.group + "\n")
+				text(data.speciality + "\n")
+				text(data.faculty + "\n" + data.author)
+			},
 		/*
-		 * Отвечает за вывод города и года на
-		 * титульном листе
+		 * Отвечает за вывод города и года на титульном листе
 		 */
-		_footer:
+		_default_footer:
 			() => {
 				v(1fr)
 				set align(center)
@@ -156,44 +177,47 @@
 				if group.len() > 0 {
 					group = (self.utils.strglue)(group, strings.title.from_group)
 				}
-				let result = (self.utils.strglue)(sex, course, group) + "\n"
+				let result = (self.utils.strglue)(sex, course, group)
 				return result
 			},
-		_default_title:
-			(self, type, info) => {
-				set page(
-					paper: "a4",
-					margin: (
-						top: 2cm,
-						bottom: 2cm,
-						left: 2.5cm,
-						right: 1.5cm
-					)
-				)
-				(self.title._header)()
-				let author = info.at("author", default: (:))
-				set align(center)
-				v(3cm)
+		_get_title_string:
+			(info, type) => {
 				if type == "autoref" {
-						info.title = [АВТОРЕФЕРАТ]
+					return [АВТОРЕФЕРАТ]
 				}
 				if type == "nir" {
-						info.title = [ОТЧЁТ О НАУЧНО-ИССЛЕДОВАТЕЛЬСКОЙ РАБОТЕ]
+					return [ОТЧЁТ О НАУЧНО-ИССЛЕДОВАТЕЛЬСКОЙ РАБОТЕ]
 				}
-				text(weight: "bold", upper(info.at("title", default: [Тема работы])))
-				par(strings.title.worktypes.at(type, default: []))
-				v(1.5cm)
-				set align(left)
-				(self.title._get_author_string)(self, author)
-				if author.faculty == [КНиИТ] {
-					text("направления " + get_speciality(author.group) + "\n")
-				} else if author.at("speciality", default: []) != [] {
-					text("направления " + author.speciality + "\n")
-				}
-				text("факультета " + author.faculty + "\n" + author.name)
+				return info.at("title", default: [Тема работы])
+			},
+		_get_strings:
+			(self, type, info) => {
+				let author = info.at("author", default: (:))
+				let title_string = (self.title._get_title_string)(info, type)
+				let worktype = strings.title.worktypes.at(type, default: [])
+				let group_string = (self.title._get_author_string)(self, author)
+				let speciality_string = (self.utils.strglue)(
+					strings.title.from_speciality,
+					(self.author_info.get_speciality)(author)
+				)
+				let faculty_string = "факультета " + author.faculty
+				return (
+					title: title_string,
+					worktype: worktype,
+					group: group_string,
+					speciality: speciality_string,
+					faculty: faculty_string,
+					author: author.name
+				)
+			},
+		make:
+			(self, type, info) => {
+				let strs = (self.title._get_strings)(self, type, info)
+				(self.title._default_header)()
+				(self.title._default_body)(strs)
 				v(1fr)
 				(self.title._signature)(info.inspector.degree, info.inspector.name)
-				(self.title._footer)()
+				(self.title._default_footer)()
 			},
 	),
 	document: (
@@ -203,7 +227,16 @@
 				type: str,
 				info: ()
 			) => {
-				(self.title._default_title)(self, type, info)	
+				set page(
+					paper: "a4",
+					margin: (
+						top: 2cm,
+						bottom: 2cm,
+						left: 2.5cm,
+						right: 1.5cm
+					)
+				)
+				(self.title.make)(self, type, info)	
 			}
 	),
 	utils: (
