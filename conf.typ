@@ -62,18 +62,6 @@
 	)
 )
 
-
-
-#let get_student_word(sex) = {
-	return strings.student.at(sex, default: strings.error.no_sex)
-}
-
-#let otchet_title(info) = {
-		let author = info.at("author", default: (:))
-		set align(center)
-}
-
-
 #let make_toc(
 	info: ()
 ) = {
