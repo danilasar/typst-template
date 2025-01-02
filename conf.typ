@@ -386,7 +386,7 @@
 				}
 				if strings.caps_headings.contains(it.body) {
 					set align(center)
-					counter(heading).update(i => i - 1)
+					//counter(heading).update(i => i - 1)
 					upper(it.body)
 				} else {
 					it
@@ -448,6 +448,7 @@
 				set page(numbering: "1")
 				set math.equation(numbering: "(1)", supplement: [])
 				set figure(supplement: "Рис.")
+				set quote(block: true)
 
 				// Вывод самого документа
 				(self.document.first_line_indentation)(self, doc)
