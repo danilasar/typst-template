@@ -1,0 +1,11 @@
+[package]
+name = "sgu-template"
+version = "0.0.1"
+entrypoint = "conf.typ"
+authors = ["Danila Grogirev <danila.sar@yandex.ru>"]
+license = "MIT-0"
+description = "Unofficial Saratov State University typst template"
+
+[template]
+path = "template"
+entrypoint = "main.typ"
