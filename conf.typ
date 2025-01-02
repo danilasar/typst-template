@@ -66,6 +66,15 @@
 }
 
 
+#let make_toc(
+	info: ()
+) = {
+
+	outline(indent: 2%, title: [Содержание])
+	pagebreak(weak: true)
+}
+
+
 #let modules = (
 	/*
 	 * Модуль информации об авторе
@@ -263,18 +272,17 @@
 		 * Получает заголовок титульного листа.
 		 * Принимает:
 		 *  - info - информация о документе
-		 *  - type - тип документа
 		 * Возвращает:
 		 *  - В зависимости от типа:
 		 *    - Тему работы, если это не автореферат и не отчёт по НИРу
 		 *    - В противном случае названия соответствующих типов работ
 		 */
 		_get_title_string:
-			(info, type) => {
-				if type == "autoref" {
+			(info) => {
+				if info.type == "autoref" {
 					return [АВТОРЕФЕРАТ]
 				}
-				if type == "nir" {
+				if info.type == "nir" {
 					return [ОТЧЁТ О НАУЧНО-ИССЛЕДОВАТЕЛЬСКОЙ РАБОТЕ]
 				}
 				return info.at("title", default: [Тема работы])
@@ -282,7 +290,6 @@
 		/*
 		 * Генерирует строки текста для вывода на титульном листе
 		 * Принимает:
-		 *  - type - тип документа
 		 *  - info - информация о документе
 		 * Возвращает:
 		 *  - Словарь:
@@ -294,10 +301,10 @@
 		 *     author: автор(ы)? работы
 		 */
 		_get_strings:
-			(self, type, info) => {
+			(self, info) => {
 				let author = info.at("author", default: (:))
-				let title_string = (self.title._get_title_string)(info, type)
-				let worktype = strings.title.worktypes.at(type, default: [])
+				let title_string = (self.title._get_title_string)(info)
+				let worktype = strings.title.worktypes.at(info.type, default: [])
 				let group_string = (self.title._get_author_string)(self, author)
 				let speciality_string = (self.utils.strglue)(
 					strings.title.from_speciality,
@@ -316,12 +323,11 @@
 		/*
 		 * Генерирует титульный лист
 		 * Принимает:
-		 *  - type - тип документа
 		 *  - info - информация о документе
 		 */
 		make:
-			(self, type, info) => {
-				let strs = (self.title._get_strings)(self, type, info)
+			(self, info) => {
+				let strs = (self.title._get_strings)(self, info)
 				(self.title._default_header)()
 				(self.title._default_body)(strs)
 				v(1fr)
@@ -341,14 +347,15 @@
 		/*
 		 * Генерирует весь документ
 		 * Принимает:
-		 *  - type - тип документа
 		 *  - info - информация о документе
+		 *  - doc  - содержимое документа
 		 */
 		make:
 			(
 				self,
-				type: str,
-				info: ()
+				info: (),
+				settings,
+				doc
 			) => {
 				set page(
 					paper: "a4",
@@ -359,7 +366,58 @@
 						right: 1.5cm
 					)
 				)
-				(self.title.make)(self, type, info)	
+				set text(
+					size: 14pt
+				)
+
+				if settings.title_page.at("enabled", default: true) {
+					(self.title.make)(self, info)	
+				}
+				set align(left)
+
+				set page(footer: context [
+					#h(1fr)
+					#counter(page).display(
+						"1"
+					)
+				])
+				
+				
+				let caps_headings = (
+					[Содержание],
+					[Введение],
+					[Заключение],
+					[Список использованных источников],
+					[Определения, обозначения и сокращения],
+					[Обозначения и сокращения]
+				)
+				show heading: it => {
+					set text(size: 14pt)
+					if it.depth == 1 {
+							pagebreak(weak: true)
+							v(4.3pt * (3 + 1 - 0.2))
+					}
+					if caps_headings.contains(it.body) {
+						set align(center)
+						counter(heading).update(i => i - 1)
+						upper(it.body)
+					} else {
+						it
+					}
+					v(4.3pt * (0.4 + 0.2))
+				}
+				set heading(numbering: "1.1")
+				set page(numbering: "1")
+				// Отступ начала абазаца 1.25 см и выравнивание по ширине
+				set par(
+					justify: true
+				)
+				if settings.contents_page.enabled {
+					make_toc(info: info)
+				}
+				set math.equation(numbering: "(1)", supplement: [])
+				set figure(supplement: "Рис.")
+				doc
 			}
 	),
 
@@ -407,15 +465,9 @@
 	)
 )
 
-
-#let make_toc(
-	info: ()
-) = {
-
-	outline(indent: 2%, title: [Содержание])
-	pagebreak(weak: true)
-}
-
+/*
+ * Точка входа, просто вызывает modules.document.make
+ */
 #let conf(
 	title: none,
 	info: (),
@@ -424,78 +476,9 @@
 	doc
 ) = {
 	info.title = title
+	info.type = type
 	settings.title_page = settings.at("title_page", default: (:))
-
-
-	set text(
-		size: 14pt
-	)
-
-	if settings.title_page.at("enabled", default: true) {
-		(modules.document.make)(modules, type: type, info: info)
-	}
-	set align(left)
-
-	set page(footer: context [
-		#h(1fr)
-		#counter(page).display(
-			"1"
-		)
-	])
-	
-	
-	let caps_headings = (
-		[Содержание],
-		[Введение],
-		[Заключение],
-		[Список использованных источников],
-		[Определения, обозначения и сокращения],
-		[Обозначения и сокращения]
-	)
-	show heading: it => {
-		set text(size: 14pt)
-		if it.depth == 1 {
-				pagebreak(weak: true)
-				v(4.3pt * (3 + 1 - 0.2))
-		}
-		if caps_headings.contains(it.body) {
-			set align(center)
-			counter(heading).update(i => i - 1)
-			upper(it.body)
-		} else {
-			it
-		}
-		v(4.3pt * (0.4 + 0.2))
-	}
-	set heading(numbering: "1.1")
-	set page(numbering: "1")
-	// Отступ начала абазаца 1.25 см и выравнивание по ширине
-	set par(
-		justify: true
-	)
-	if settings.contents_page.enabled {
-		make_toc(info: info)
-	}
-	set math.equation(numbering: "(1)", supplement: [])
-	set figure(supplement: "Рис.")
-	doc
-
-	/*let count = authors.len()
-	let ncols = calc.min(count, 3)
-	grid(
-		columns: (1fr,) * ncols,
-		row-gutter: 24pt,
-		..authors.map(author => [
-			#author.name \
-			#author.affiliation \
-			#link("mailto:" + author.email)
-		]),
-	)
-
-	par(justify: false)[
-		*Abstract* \
-		#abstract
-	]*/
+	(modules.document.make)(modules, info: info, settings, doc)
 }
 
 
