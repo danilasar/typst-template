@@ -19,15 +19,16 @@
 ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ
 ИМЕНИ Н. Г. ЧЕРНЫШЕВСКОГО»\n",
 		city: "Саратов",
-        worktypes: (
+		worktypes: (
 			referat: [РЕФЕРАТ],
 			coursework: [КУРСОВАЯ РАБОТА],
-            diploma: [Выпускная квалификационная работа],
+			diploma: [Выпускная квалификационная работа],
 			autoref: [работа],
 			nir: [работа],
 			pract: [Отчёт о практике]
-        ),
-        
+		),
+		from_course: "курса",
+		from_group: "группы"
 	),
 	student: (
 		male: "студента",
@@ -117,12 +118,23 @@
 				text(weight: "bold", strings.title.sgu)
 				set align(left)
 			},
+		/*
+		 * Отвечает за вывод города и года на
+		 * титульном листе
+		 */
+		_footer:
+			() => {
+				v(1fr)
+				set align(center)
+				text(strings.title.city + " " + str(datetime.today().year()))
+			},
 
 		/*
 		 * Подпись "Проверено:" для титульного листа
 		 */
 		_signature:
 			(post, name) => {
+				text("Проверено:\n")
 				grid(
 					columns: (1fr,) * 3,
 					align: (left, center, right),
@@ -130,25 +142,35 @@
 					post, block(inset: (y: 13pt), line(length: 3cm, stroke: .4pt)), name
 				)
 			},
-        /*
-         * Строка "студента такой-то группы" для титульного листа
-         */
+		/*
+		 * Строка "студента такой-то группы" для титульного листа
+		 */
 		_get_author_string:
 			(self, author) => {
-				let sex = self.author_info.get_author_sex(author)
-				let course = self.author_info.get_author_course(author)
-				let group = self.author_info.get_author_group(author)
-                if course.len() > 0 {
-                    course = self.uitls.strglue(course, "курса")
-                }
-                if group.len() > 0 {
-                    group = self.utils.strglue(group, "группа")
-                }
-				let result = self.utils.strglue(sex, course, group) + "\n"
-                return result
+				let sex = (self.author_info.get_author_sex)(author)
+				let course = (self.author_info.get_author_course)(author)
+				let group = (self.author_info.get_author_group)(author)
+				if course.len() > 0 {
+					course = (self.utils.strglue)(course, strings.title.from_course)
+				}
+				if group.len() > 0 {
+					group = (self.utils.strglue)(group, strings.title.from_group)
+				}
+				let result = (self.utils.strglue)(sex, course, group) + "\n"
+				return result
 			},
 		_default_title:
 			(self, type, info) => {
+				set page(
+					paper: "a4",
+					margin: (
+						top: 2cm,
+						bottom: 2cm,
+						left: 2.5cm,
+						right: 1.5cm
+					)
+				)
+				(self.title._header)()
 				let author = info.at("author", default: (:))
 				set align(center)
 				v(3cm)
@@ -162,41 +184,26 @@
 				par(strings.title.worktypes.at(type, default: []))
 				v(1.5cm)
 				set align(left)
-				let author_string = get_student_word(author.at("sex"))
-				author_string = author_string + " " + author.group.at(0) + " курса " + author.group + " группы\n"
+				(self.title._get_author_string)(self, author)
 				if author.faculty == [КНиИТ] {
-					author_string = author_string + "направления " + get_speciality(author.group) + "\n"
+					text("направления " + get_speciality(author.group) + "\n")
 				} else if author.at("speciality", default: []) != [] {
-					author_string = author_string + "направления " + author.speciality + "\n"
+					text("направления " + author.speciality + "\n")
 				}
-
-				text(author_string + "факультета " + author.faculty + "\n" + author.name)
+				text("факультета " + author.faculty + "\n" + author.name)
 				v(1fr)
-				text("Проверено:\n")
 				(self.title._signature)(info.inspector.degree, info.inspector.name)
+				(self.title._footer)()
 			},
+	),
+	document: (
 		make:
 			(
 				self,
 				type: str,
 				info: ()
 			) => {
-				set page(
-					paper: "a4",
-					margin: (
-						top: 2cm,
-						bottom: 2cm,
-						left: 2.5cm,
-						right: 1.5cm
-					)
-				)
-				
-				(self.title._header)()
-				(self.title._default_title)(self, type, info)
-				
-				v(1fr)
-				set align(center)
-				text(strings.title.city + " " + str(datetime.today().year()))
+				(self.title._default_title)(self, type, info)	
 			}
 	),
 	utils: (
@@ -205,18 +212,18 @@
 				divider: " ",
 				..strings
 			) => {
-				let result = str(strings[0])
-				let i = 1
-				while i < strings.len() {
+				let result = ""
+				for string in strings.pos() {
 					if(
-						(type(strings[i]) != str)
-						or
-						((result.len() > 0) and (strings[i].len() > 0))
+							(result.len() > 0)
+						and
+							((type(string) != str) or (string.len() > 0))
 					) {
 						result = result + " "
 					}
-					result = result = str(strings[i])
+					result = result + string
 				}
+				return result
 			}
 	)
 )
@@ -246,7 +253,7 @@
 	)
 
 	if settings.title_page.at("enabled", default: true) {
-		(modules.title.make)(modules, type: type, info: info)
+		(modules.document.make)(modules, type: type, info: info)
 	}
 	set align(left)
 
