@@ -61,35 +61,6 @@
 		undefined_spec: [*НЕИЗВЕСТНАЯ СПЕЦИАЛЬНОСТЬ*]
 	)
 )
-
-#let make_toc(
-	info: ()
-) = {
-	show outline.entry.where(
-		level: 1
-	): it => {
-		let heading = it.at("element", default: (:)).at("body", default: "")
-		if not strings.caps_headings.contains(heading) {
-			it
-			return
-		}
-		grid(
-			columns: (auto,1pt, 1fr,1pt, auto),
-			align: (left, center, right),
-			row-gutter: 0pt,
-			rows: (auto),
-			inset: 0pt,
-			heading, none, it.fill, none, it.page
-		)
-		v(-28pt) // TODO разобраться, откуда такой отступ после grid
-	}
-
-
-	outline(indent: 2%, title: [Содержание])
-	pagebreak(weak: true)
-}
-
-
 #let indent = 1cm
 #let styled = [#set text(red)].func()
 #let space = [ ].func()
@@ -382,6 +353,35 @@
 				v(4.3pt * (0.4 + 0.2))
 			},
 		/*
+		 * Генерирует страницу содержания
+		 * Принимает:
+		 *  - info - информация о документе
+		 */
+		make_toc:
+			(
+				info: ()
+			) => {
+				show outline.entry.where(
+					level: 1
+				): it => {
+					let heading = it.at("element", default: (:)).at("body", default: "")
+					if not strings.caps_headings.contains(heading) {
+						it
+						return
+					}
+					grid(
+						columns: (auto,1pt, 1fr,1pt, auto),
+						align: (left, center, right),
+						row-gutter: 0pt,
+						rows: (auto),
+						inset: 0pt,
+						heading, none, it.fill, none, it.page
+					)
+					v(-28pt) // TODO разобраться, откуда такой отступ после grid
+				}
+				outline(indent: 2%, title: [Содержание])
+			},
+		/*
 		 * Генерирует весь документ
 		 * Принимает:
 		 *  - info - информация о документе
@@ -422,7 +422,7 @@
 
 				// Вывод содержания
 				if settings.contents_page.enabled {
-					make_toc(info: info)
+					(self.document.make_toc)(info: info)
 				}
 
 				// Оформление элементов содержимого документа
