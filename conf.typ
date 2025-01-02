@@ -61,7 +61,8 @@
 		undefined_spec: [*НЕИЗВЕСТНАЯ СПЕЦИАЛЬНОСТЬ*]
 	)
 )
-#let indent = 1cm
+// Переменная отвечающая за размер отступа красной строки
+#let indent = 1.25cm
 #let styled = [#set text(red)].func()
 #let space = [ ].func()
 #let sequence = [].func()
@@ -415,7 +416,7 @@
 				
 				show heading: self.document.apply_heading_styles
 				
-				// Отступ начала абазаца 1.25 см и выравнивание по ширине
+				// Выравнивание по ширине
 				set par(
 					justify: true
 				)
