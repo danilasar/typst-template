@@ -39,6 +39,14 @@
 		female: "студентки",
 		plural: "студентов",
 	),
+	caps_headings: (
+		[Содержание],
+		[Введение],
+		[Заключение],
+		[Список использованных источников],
+		[Определения, обозначения и сокращения],
+		[Обозначения и сокращения]
+	),
 	specialities: (
 		spec_kb: [10.05.01 --- Компьютерная безопасность],
 		bac_ivt: [09.03.01 --- Информатика и вычислительная техника],
@@ -69,10 +77,35 @@
 #let make_toc(
 	info: ()
 ) = {
+	show outline.entry.where(
+		level: 1
+	): it => {
+		let heading = it.at("element", default: (:)).at("body", default: "")
+		if not strings.caps_headings.contains(heading) {
+			it
+			return
+		}
+		grid(
+			columns: (auto,1pt, 1fr,1pt, auto),
+			align: (left, center, right),
+			row-gutter: 0pt,
+			rows: (auto),
+			inset: 0pt,
+			heading, none, it.fill, none, it.page
+		)
+		v(-28pt) // TODO разобраться, откуда такой отступ после grid
+	}
+
 
 	outline(indent: 2%, title: [Содержание])
 	pagebreak(weak: true)
 }
+
+
+#let indent = 1cm
+#let styled = [#set text(red)].func()
+#let space = [ ].func()
+#let sequence = [].func()
 
 
 #let modules = (
@@ -344,6 +377,22 @@
 	 * отвечает за всё оформление выходного документа.
 	 */
 	document: (
+		apply_heading_styles:
+			(it) => {
+				set text(size: 14pt)
+				if it.depth == 1 {
+					pagebreak(weak: true)
+					v(4.3pt * (3 + 1 - 0.2))
+				}
+				if strings.caps_headings.contains(it.body) {
+					set align(center)
+					counter(heading).update(i => i - 1)
+					upper(it.body)
+				} else {
+					it
+				}
+				v(4.3pt * (0.4 + 0.2))
+			},
 		/*
 		 * Генерирует весь документ
 		 * Принимает:
@@ -375,49 +424,84 @@
 				}
 				set align(left)
 
+				
+				show heading: self.document.apply_heading_styles
+				
+				// Отступ начала абазаца 1.25 см и выравнивание по ширине
+				set par(
+					justify: true
+				)
+
+				// Вывод содержания
+				if settings.contents_page.enabled {
+					make_toc(info: info)
+				}
+
+				// Оформление элементов содержимого документа
+				set heading(numbering: "1.1")
 				set page(footer: context [
 					#h(1fr)
 					#counter(page).display(
 						"1"
 					)
 				])
-				
-				
-				let caps_headings = (
-					[Содержание],
-					[Введение],
-					[Заключение],
-					[Список использованных источников],
-					[Определения, обозначения и сокращения],
-					[Обозначения и сокращения]
-				)
-				show heading: it => {
-					set text(size: 14pt)
-					if it.depth == 1 {
-							pagebreak(weak: true)
-							v(4.3pt * (3 + 1 - 0.2))
-					}
-					if caps_headings.contains(it.body) {
-						set align(center)
-						counter(heading).update(i => i - 1)
-						upper(it.body)
-					} else {
-						it
-					}
-					v(4.3pt * (0.4 + 0.2))
-				}
-				set heading(numbering: "1.1")
 				set page(numbering: "1")
-				// Отступ начала абазаца 1.25 см и выравнивание по ширине
-				set par(
-					justify: true
-				)
-				if settings.contents_page.enabled {
-					make_toc(info: info)
-				}
 				set math.equation(numbering: "(1)", supplement: [])
 				set figure(supplement: "Рис.")
-				doc
+
+				// Вывод самого документа
+				(self.document.first_line_indentation)(self, doc)
+			},
+		/*
+		 * Подставляет красные строки в начала абзацев
+		 */
+		first_line_indentation:
+			(
+				self,
+				doc,
+				last-is-heading: false, // space and parbreak are ignored
+				indent-already-added: false,
+			) => {
+				for (i, elem) in doc.children.enumerate() {
+					let element = elem.func()
+					if element == text {
+						let previous-elem = doc.children.at(i - 1)
+						if i == 0 or last-is-heading or previous-elem.func() == parbreak {
+							if not indent-already-added {
+								indent-already-added = true
+								h(indent)
+							}
+						}
+						elem
+					} else if element == heading {
+						indent-already-added = false
+						last-is-heading = true
+						elem
+					} else if element == space {
+						elem
+					} else if element == parbreak {
+						indent-already-added = false
+						elem
+					} else if element == sequence {
+						(self.document.first_line_indentation)(
+							self,
+							elem,
+							last-is-heading: last-is-heading,
+							indent-already-added: indent-already-added,
+						)
+					} else if element == styled {
+						styled((self.document.first_line_indentation)(
+							self,
+							elem.child,
+							last-is-heading: last-is-heading,
+							indent-already-added: indent-already-added,
+						), elem.styles)
+					} else {
+						indent-already-added = false
+						last-is-heading = false
+						elem
+					}
+				}
 			}
 	),
 
@@ -479,55 +563,4 @@
 	info.type = type
 	settings.title_page = settings.at("title_page", default: (:))
 	(modules.document.make)(modules, info: info, settings, doc)
-}
-
-
-#let indent = 1cm
-#let styled = [#set text(red)].func()
-#let space = [ ].func()
-#let sequence = [].func()
-
-#let turn-on-first-line-indentation(
-	doc,
-	last-is-heading: false, // space and parbreak are ignored
-	indent-already-added: false,
-) = {
-	for (i, elem) in doc.children.enumerate() {
-		let element = elem.func()
-		if element == text {
-			let previous-elem = doc.children.at(i - 1)
-			if i == 0 or last-is-heading or previous-elem.func() == parbreak {
-				if not indent-already-added {
-					indent-already-added = true
-					h(indent)
-				}
-			}
-			elem
-		} else if element == heading {
-			indent-already-added = false
-			last-is-heading = true
-			elem
-		} else if element == space {
-			elem
-		} else if element == parbreak {
-			indent-already-added = false
-			elem
-		} else if element == sequence {
-			turn-on-first-line-indentation(
-				elem,
-				last-is-heading: last-is-heading,
-				indent-already-added: indent-already-added,
-			)
-		} else if element == styled {
-			styled(turn-on-first-line-indentation(
-				elem.child,
-				last-is-heading: last-is-heading,
-				indent-already-added: indent-already-added,
-			), elem.styles)
-		} else {
-			indent-already-added = false
-			last-is-heading = false
-			elem
-		}
-	}
 }
