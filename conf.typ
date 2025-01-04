@@ -14,7 +14,6 @@
  */
 
 
-
 #let strings = (
 	title: (
 		minobrnauki: "МИНОБРНАУКИ РОССИИ\nФедеральное государственное бюджетное образовательное учреждение\nвысшего образования\n",
@@ -439,60 +438,22 @@
 				set figure(supplement: "Рис.")
 				set quote(block: true)
 
-				// Вывод самого документа
-				(self.document.first_line_indentation)(self, doc)
-			},
-		/*
-		 * Подставляет красные строки в начала абзацев
-		 */
-		first_line_indentation:
-			(
-				self,
-				doc,
-				last-is-heading: false, // space and parbreak are ignored
-				indent-already-added: false,
-			) => {
-				for (i, elem) in doc.children.enumerate() {
-					let element = elem.func()
-					if element == text {
-						let previous-elem = doc.children.at(i - 1)
-						if i == 0 or last-is-heading or previous-elem.func() == parbreak {
-							if not indent-already-added {
-								indent-already-added = true
-								h(indent)
-							}
-						}
-						elem
-					} else if element == heading {
-						indent-already-added = false
-						last-is-heading = true
-						elem
-					} else if element == space {
-						elem
-					} else if element == parbreak {
-						indent-already-added = false
-						elem
-					} else if element == sequence {
-						(self.document.first_line_indentation)(
-							self,
-							elem,
-							last-is-heading: last-is-heading,
-							indent-already-added: indent-already-added,
-						)
-					} else if element == styled {
-						styled((self.document.first_line_indentation)(
-							self,
-							elem.child,
-							last-is-heading: last-is-heading,
-							indent-already-added: indent-already-added,
-						), elem.styles)
-					} else {
-						indent-already-added = false
-						last-is-heading = false
-						elem
-					}
+				// todo проверить надёжность
+				// отвечает за красные строки там, где их нет, но они должны быть
+				show heading: it => {
+					it
+					""
+					context v(-par.spacing - measure("").height)
 				}
-			}
+				show selector.or(heading, table, grid, figure): it => {
+					it
+					""
+					context v(-par.spacing - measure("").height)
+				}
+
+				// Вывод самого документа
+				doc
+			},
 	),
 
 	/*
