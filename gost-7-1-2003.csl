@@ -454,20 +454,13 @@
               <text macro="author-title" suffix=" [Электронный ресурс]. &#8212; [Б. м. : б. и.]"/>
               <!-- Версия под en источник -->
               <!-- <text macro="author-title" suffix=" [Электронный ресурс]. &#8212; [Б. м. : б. и.]"/> -->
-              <text variable="genre"/>
             </group>
             <group delimiter=" ">
               <text macro="second-position-authors-only"/>
-              <text variable="note"/>
             </group>            
           </group>            
           <text variable="URL" prefix="URL: "/>
-          <text variable="accessed" prefix="(дата обращения:" suffix=")"/>
-              <date variable="accessed">
-                <date-part name="day" suffix="." form="numeric-leading-zeros"/>
-                <date-part name="month" suffix="." form="numeric-leading-zeros"/>
-                <date-part name="year"/>
-              </date>
+          <text variable="annote" prefix="(дата обращения: " />
         </group>
       </else-if>
 <!--_______________________________________________________________________________
