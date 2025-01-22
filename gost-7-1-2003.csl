@@ -453,13 +453,16 @@
               <!-- Версия под ru источник -->
               <text macro="author-title" suffix=" [Электронный ресурс]. &#8212; [Б. м. : б. и.]"/>
               <!-- Версия под en источник -->
-              <!-- <text macro="author-title" suffix=" [Электронный ресурс]. &#8212; [Б. м. : б. и.]"/> -->
+              <!-- <text macro="author-title" suffix=" [Electronic resource]. &#8212; [S. l. : s. n.]"/> -->
             </group>
             <group delimiter=" ">
               <text macro="second-position-authors-only"/>
             </group>            
           </group>            
-          <text variable="URL" prefix="URL: "/>
+              <!-- Версия под ru источник -->
+          <text variable="URL" prefix="Режим доступа: "/>
+              <!-- Версия под en источник -->
+          <!-- <text variable="URL" prefix="URL: "/> -->
           <text variable="annote" prefix="(дата обращения: " />
         </group>
       </else-if>
