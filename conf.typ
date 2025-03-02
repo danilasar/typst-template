@@ -377,7 +377,7 @@
 						inset: 0pt,
 						heading, none, it.fill, none, it.page()
 					)
-					v(-28pt) // TODO разобраться, откуда такой отступ после grid
+					v(1pt) // TODO разобраться, откуда такой отступ после grid
 				}
 				outline(indent: 2%, title: [Содержание])
 			},
