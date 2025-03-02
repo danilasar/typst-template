@@ -194,7 +194,7 @@
 		_default_header:
 			() => {
 				set align(center)
-				set text(font: "Tempora")
+				// set text(font: "Tempora")
 				text(strings.title.minobrnauki)
 				v(0.2em)
 				text(weight: "bold", strings.title.sgu)
@@ -375,9 +375,8 @@
 						row-gutter: 0pt,
 						rows: (auto),
 						inset: 0pt,
-						heading, none, it.fill, none, it.page
+						heading, none, it.fill, none, it.page()
 					)
-					v(-28pt) // TODO разобраться, откуда такой отступ после grid
 				}
 				outline(indent: 2%, title: [Содержание])
 			},
@@ -415,9 +414,11 @@
 				
 				show heading: self.document.apply_heading_styles
 				
-				// Выравнивание по ширине
 				set par(
-					justify: true
+				  // Выравнивание по ширине
+					justify: true,
+				  // отвечает за красные строки там, где их нет, но они должны быть
+          first-line-indent: (amount: indent, all: true),
 				)
 
 				// Вывод содержания
@@ -437,19 +438,6 @@
 				set math.equation(numbering: "(1)", supplement: [])
 				set figure(supplement: "Рис.")
 				set quote(block: true)
-
-				// todo проверить надёжность
-				// отвечает за красные строки там, где их нет, но они должны быть
-				show heading: it => {
-					it
-					""
-					context v(-par.spacing - measure("").height)
-				}
-				show selector.or(heading, table, grid, figure): it => {
-					it
-					""
-					context v(-par.spacing - measure("").height)
-				}
 
 				// Вывод самого документа
 				doc
