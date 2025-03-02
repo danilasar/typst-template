@@ -377,8 +377,6 @@
 						inset: 0pt,
 						heading, none, it.fill, none, it.page()
 					)
-          // TODO: поиграться с числами (отступ в содержании таких строчек, как Введение и тп)
-					v(1pt)
 				}
 				outline(indent: 2%, title: [Содержание])
 			},
