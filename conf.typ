@@ -375,7 +375,7 @@
 						row-gutter: 0pt,
 						rows: (auto),
 						inset: 0pt,
-						heading, none, it.fill, none, it.page
+						heading, none, it.fill, none, it.page()
 					)
 					v(-28pt) // TODO разобраться, откуда такой отступ после grid
 				}
