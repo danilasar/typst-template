@@ -1,4 +1,4 @@
-#import "@local/sgu-template:0.0.1": conf
+#import "@local/ssu-template:0.0.1": conf
 #show: conf.with(
   title: [Тема работы],
   type: "referat",
