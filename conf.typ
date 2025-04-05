@@ -1,3 +1,5 @@
+#import "@preview/ctheorems:1.1.3": *
+
 /*
  * Примечания:
  * - Код разбит по модулям, каждый из которых объявляется и инициализируется
@@ -38,8 +40,8 @@
   ),
   caps_headings: (
     [Содержание],
-    [Введение],
-    [Заключение],
+    [ВВЕДЕНИЕ],
+    [ЗАКЛЮЧЕНИЕ],
     [Список использованных источников],
     [Определения, обозначения и сокращения],
     [Обозначения и сокращения],
@@ -60,6 +62,9 @@
 )
 // Переменная отвечающая за размер отступа красной строки
 #let indent = 1.25cm
+#let font_size = 14pt
+// #let linespace = font_size
+#let line_spacing = 1.75em / 2
 #let styled = [#set text(red)].func()
 #let space = [ ].func()
 #let sequence = [].func()
@@ -308,19 +313,16 @@
    */
   document: (
     apply_heading_styles: it => {
-      set text(size: 14pt)
+      set text(size: font_size)
       if it.depth == 1 {
         pagebreak(weak: true)
-        v(4.3pt * (3 + 1 - 0.2))
       }
       if strings.caps_headings.contains(it.body) {
-        set align(center)
-        //counter(heading).update(i => i - 1)
-        upper(it.body)
+        align(center, it.body)
       } else {
-        it
+        pad(left: indent, it)
       }
-      v(4.3pt * (0.4 + 0.2))
+      v(line_spacing / 2)
     },
     /*
      * Генерирует страницу содержания
@@ -361,21 +363,43 @@
           right: 1.5cm,
         ),
       )
-      set text(size: 14pt)
+      set text(size: font_size, lang: "ru", font: "Times New Roman")
 
       if settings.title_page.at("enabled", default: true) {
         (self.title.make)(self, info)
       }
-      set align(left)
 
-
+      show: thmrules.with(qed-symbol: $square$)
       show heading: self.document.apply_heading_styles
+      show raw.where(block: true): it => {
+        set par(justify: false)
+        grid(
+          columns: (100%, 100%),
+          column-gutter: -100% - 1em,
+          block(
+            width: 100%,
+            inset: 1em,
+            for (i, line) in it.text.split("\n").enumerate() {
+              box(
+                width: 0pt,
+                align(right, str(i + 1) + h(2em)),
+              )
+              hide(line)
+              linebreak()
+            },
+          ),
+          block(width: 100%, inset: 1em, it),
+        )
+      }
+
 
       set par(
         // Выравнивание по ширине
         justify: true,
         // отвечает за красные строки там, где их нет, но они должны быть
         first-line-indent: (amount: indent, all: true),
+        leading: line_spacing,
+        spacing: line_spacing,
       )
 
       // Вывод содержания
@@ -393,8 +417,20 @@
       )
       set page(numbering: "1")
       set math.equation(numbering: "(1)", supplement: [])
-      set figure(supplement: "Рис.")
+      show figure.where(kind: image): set figure(supplement: "Рисунок")
+      show figure.where(kind: table): set figure(supplement: "Таблица")
+      show figure.where(kind: table): set figure.caption(position: top)
+      show figure.caption.where(kind: table): set align(left)
+      set figure.caption(separator: [ -- ])
+
       set quote(block: true)
+
+      // Примерный размер "---". Определено на глаз, как сделать более точным
+      // не разбирался.
+      let shift-back-list = 1.5em
+      set list(indent: indent - shift-back-list, marker: [#strong([---])])
+      let shift-back-enum = 1.25em
+      set enum(indent: indent - shift-back-enum)
 
       // Вывод самого документа
       doc
@@ -431,6 +467,28 @@
     },
   ),
 )
+
+#let intro = {
+  [#heading(numbering: none, outlined: true, [ВВЕДЕНИЕ]) <intro>]
+}
+
+
+#let conclusion = {
+  heading(numbering: none, outlined: true, [ЗАКЛЮЧЕНИЕ])
+}
+
+#let thm-format = thmplain.with(
+  inset: 0em,
+  padding: (y: font_size / 2),
+  titlefmt: strong,
+  bodyfmt: emph,
+  namefmt: x => [(#x)],
+  base: none,
+  separator: [#strong(".")#h(0.2em)],
+)
+#let definition = thm-format("definition", "Определение")
+#let theorem = thm-format("theorem", "Теорема")
+#let proof = thmproof("proof", "Доказательство")
 
 /*
  * Точка входа, просто вызывает modules.document.make
