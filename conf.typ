@@ -1,4 +1,5 @@
 #import "@preview/ctheorems:1.1.3": *
+#import "@preview/headcount:0.1.0": *
 
 /*
  * Примечания:
@@ -327,7 +328,7 @@
       ) {
         let children = it.body.at("children")
         let letter = children.at(2)
-        let title = children.at(4, default: [])
+        let title = children.at(4)
         align(center, [ПРИЛОЖЕНИЕ #letter \ #title])
       } else {
         pad(left: indent, it)
@@ -341,21 +342,43 @@
      */
     make_toc: (info: ()) => {
       show outline.entry.where(level: 1): it => {
-        let heading = it.at("element", default: (:)).at("body", default: "")
-        if not strings.caps_headings.contains(heading) {
+        let heading-text = it
+          .at("element", default: (:))
+          .at("body", default: "")
+        if (
+          heading-text.has("children")
+            and heading-text.at("children").first() == [ПРИЛОЖЕНИЕ]
+        ) {
+          context {
+            // let letter = "aboba"
+            // let letter = counter(heading) //   .at(it.at("element"))
+            //   .display(it.at("element").numbering)
+            let letter = counter(heading).display()
+            [#grid(
+                columns: (auto, 1pt, 1fr, 1pt, auto),
+                align: (left, center, right),
+                row-gutter: 0pt,
+                rows: auto,
+                inset: 0pt,
+                [#it.element.body], none, it.fill, none, it.page(),
+              )]
+          }
+        } else if not strings.caps_headings.contains(heading-text) {
+          // [#it.fields() #heading.fields()]
           it
           return
+        } else {
+          grid(
+            columns: (auto, 1pt, 1fr, 1pt, auto),
+            align: (left, center, right),
+            row-gutter: 0pt,
+            rows: auto,
+            inset: 0pt,
+            heading-text, none, it.fill, none, it.page(),
+          )
         }
-        grid(
-          columns: (auto, 1pt, 1fr, 1pt, auto),
-          align: (left, center, right),
-          row-gutter: 0pt,
-          rows: auto,
-          inset: 0pt,
-          heading, none, it.fill, none, it.page(),
-        )
       }
-      outline(indent: 2%, title: [СОДЕРЖАНИЕ])
+      outline(title: [СОДЕРЖАНИЕ])
     },
     /*
      * Генерирует весь документ
@@ -487,22 +510,26 @@
   heading(numbering: none, outlined: true, [ЗАКЛЮЧЕНИЕ])
 }
 
+#let appendix-start = {
+  [#metadata("Start of appendix") <meta:ssu-appendix>]
+}
+
 #let appendix-letters = "АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ"
-#let appendix-counter = counter("appendix")
+#let appendix-numbering(..nums) = {
+  let start = counter(heading).at(<meta:ssu-appendix>).first()
+  let number = nums.pos().first() - start
+  appendix-letters.clusters().at(number, default: str(number))
+}
+
 #let appendix(title) = {
   context {
-    let number = appendix-counter.get().first()
-    let letter = appendix-letters.clusters().at(number, default: str(number))
-    align(
-      center,
-      heading(
-        numbering: none,
-        outlined: true,
-        [ПРИЛОЖЕНИЕ #letter #title],
-      ),
+    let number = counter(heading).display(appendix-numbering)
+    heading(
+      numbering: appendix-numbering,
+      outlined: true,
+      [ПРИЛОЖЕНИЕ #number #title],
     )
   }
-  appendix-counter.step()
 }
 
 #let thm-format = thmplain.with(
