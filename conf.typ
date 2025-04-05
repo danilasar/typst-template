@@ -39,7 +39,7 @@
     plural: "студентов",
   ),
   caps_headings: (
-    [Содержание],
+    [СОДЕРЖАНИЕ],
     [ВВЕДЕНИЕ],
     [ЗАКЛЮЧЕНИЕ],
     [Список использованных источников],
@@ -317,8 +317,18 @@
       if it.depth == 1 {
         pagebreak(weak: true)
       }
-      if strings.caps_headings.contains(it.body) {
+      if (
+        strings.caps_headings.contains(it.body)
+      ) {
         align(center, it.body)
+      } else if (
+        it.body.has("children")
+          and it.body.at("children").first() == [ПРИЛОЖЕНИЕ]
+      ) {
+        let children = it.body.at("children")
+        let letter = children.at(2)
+        let title = children.at(4, default: [])
+        align(center, [ПРИЛОЖЕНИЕ #letter \ #title])
       } else {
         pad(left: indent, it)
       }
@@ -345,7 +355,7 @@
           heading, none, it.fill, none, it.page(),
         )
       }
-      outline(indent: 2%, title: [Содержание])
+      outline(indent: 2%, title: [СОДЕРЖАНИЕ])
     },
     /*
      * Генерирует весь документ
@@ -477,6 +487,24 @@
   heading(numbering: none, outlined: true, [ЗАКЛЮЧЕНИЕ])
 }
 
+#let appendix-letters = "АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ"
+#let appendix-counter = counter("appendix")
+#let appendix(title) = {
+  context {
+    let number = appendix-counter.get().first()
+    let letter = appendix-letters.clusters().at(number, default: str(number))
+    align(
+      center,
+      heading(
+        numbering: none,
+        outlined: true,
+        [ПРИЛОЖЕНИЕ #letter #title],
+      ),
+    )
+  }
+  appendix-counter.step()
+}
+
 #let thm-format = thmplain.with(
   inset: 0em,
   padding: (y: font_size / 2),
@@ -489,6 +517,12 @@
 #let definition = thm-format("definition", "Определение")
 #let theorem = thm-format("theorem", "Теорема")
 #let proof = thmproof("proof", "Доказательство")
+
+// TODO: по какой-то причине эта функция всегда вставляет пустую строку в конце
+#let source-file(file) = {
+  raw(read(file), block: true)
+}
+
 
 /*
  * Точка входа, просто вызывает modules.document.make
