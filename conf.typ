@@ -327,8 +327,9 @@
           and it.body.at("children").first() == [ПРИЛОЖЕНИЕ]
       ) {
         let children = it.body.at("children")
-        let letter = children.at(2)
-        let title = children.at(4)
+        // let letter = children.at(2)
+        let letter = "aboba"
+        let title = children.at(2)
         align(center, [ПРИЛОЖЕНИЕ #letter \ #title])
       } else {
         pad(left: indent, it)
@@ -349,20 +350,21 @@
           heading-text.has("children")
             and heading-text.at("children").first() == [ПРИЛОЖЕНИЕ]
         ) {
-          context {
-            // let letter = "aboba"
-            // let letter = counter(heading) //   .at(it.at("element"))
-            //   .display(it.at("element").numbering)
-            let letter = counter(heading).display()
-            [#grid(
-                columns: (auto, 1pt, 1fr, 1pt, auto),
-                align: (left, center, right),
-                row-gutter: 0pt,
-                rows: auto,
-                inset: 0pt,
-                [#it.element.body], none, it.fill, none, it.page(),
-              )]
-          }
+          // context {
+          //   // let letter = "aboba"
+          //   // let letter = counter(heading) //   .at(it.at("element"))
+          //   //   .display(it.at("element").numbering)
+          //   let letter = counter(heading).display()
+          //   [#grid(
+          //       columns: (auto, 1pt, 1fr, 1pt, auto),
+          //       align: (left, center, right),
+          //       row-gutter: 0pt,
+          //       rows: auto,
+          //       inset: 0pt,
+          //       [#it.element.body], none, it.fill, none, it.page(),
+          //     )]
+          // }
+          return it
         } else if not strings.caps_headings.contains(heading-text) {
           // [#it.fields() #heading.fields()]
           it
@@ -518,18 +520,24 @@
 #let appendix-numbering(..nums) = {
   let start = counter(heading).at(<meta:ssu-appendix>).first()
   let number = nums.pos().first() - start
-  appendix-letters.clusters().at(number, default: str(number))
+  [ПРИЛОЖЕНИЕ #appendix-letters.clusters().at(number, default: str(number))]
+}
+
+#let appendix-supplement(h) = {
+  [ABOBA]
 }
 
 #let appendix(title) = {
-  context {
-    let number = counter(heading).display(appendix-numbering)
-    heading(
-      numbering: appendix-numbering,
-      outlined: true,
-      [ПРИЛОЖЕНИЕ #number #title],
-    )
-  }
+  // context {
+  //   let number = counter(heading).display(appendix-numbering)
+  // }
+  heading(
+    numbering: appendix-numbering,
+    supplement: appendix-supplement,
+    outlined: true,
+    // [ПРИЛОЖЕНИЕ #number #title],
+    [ПРИЛОЖЕНИЕ #title],
+  )
 }
 
 #let thm-format = thmplain.with(
