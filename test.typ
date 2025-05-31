@@ -1,35 +1,36 @@
-#import "conf.typ" : conf
+#import "conf.typ": conf, intro, conclusion
 #show: conf.with(
   title: [Применение шаблона для typst],
   type: "referat",
   info: (
-      author: (
-        name: [Григорьева Данилы (danilasar), Смирнова Егора (aragami3070), Толстова Роберта (tolstovrob)],
-        faculty: [КНиИТ],
-        group: "251",
-        sex: "plural"
-      ),
-      inspector: (
-        degree: "",
-        name: ""
-      )
+    author: (
+      name: [Григорьева Данилы (danilasar), Смирнова Егора (aragami3070), Толстова Роберта (tolstovrob)],
+      faculty: [КНиИТ],
+      group: "251",
+      sex: "plural",
+    ),
+    inspector: (
+      degree: "",
+      name: "",
+    ),
   ),
   settings: (
     title_page: (
-      enabled: true
+      enabled: true,
     ),
     contents_page: (
-      enabled: true
-    )
-  )
+      enabled: true,
+    ),
+  ),
 )
 
-= Введение
+#intro
+
 Шаблон автоматически определяет и оформляет особенным образом соответствующие секции:
 - Содержание
-- Введение 
+- Введение
 - Заключение
-- Список использованных источников 
+- Список использованных источников
 - Определения, обозначения и сокращения
 - Обозначения и сокращения
 
@@ -61,9 +62,11 @@
 
 === Типы вопросов
 
-#quote(attribution: [Даня])[Если я прямо на паре начну изучать новый вариант русской раскладки, пожалею ли я об этом?]
+#quote(
+  attribution: [Даня],
+)[Если я прямо на паре начну изучать новый вариант русской раскладки, пожалею ли я об этом?]
 
-= Заключение
+#conclusion
 
 Пример заключения
 

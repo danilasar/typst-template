@@ -1,5 +1,5 @@
 [package]
-name = "sgu-template"
+name = "ssu-template"
 version = "0.0.1"
 entrypoint = "conf.typ"
 authors = ["Danila Grogirev <danila.sar@yandex.ru>"]
