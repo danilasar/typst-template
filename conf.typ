@@ -447,6 +447,8 @@
       show figure.where(kind: table): set block(breakable: true)
       show figure.caption.where(kind: table): set align(left)
 
+      set terms(separator: [ --- ])
+
       set quote(block: true)
 
       set bibliography(title: "СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ")
