@@ -449,6 +449,9 @@
 
       set quote(block: true)
 
+      set bibliography(title: "СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ")
+      set bibliography(style: "gost-7-1-2003.csl")
+
       // Примерный размер "---". Определено на глаз, как сделать более точным
       // не разбирался.
       let shift-back-list = 1.5em
