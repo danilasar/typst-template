@@ -39,12 +39,11 @@
     plural: "студентов",
   ),
   caps_headings: (
-    [Содержание],
+    [ОПРЕДЕЛЕНИЯ, ОБОЗНАЧЕНИЯ И СОКРАЩЕНИЯ],
+    [СОДЕРЖАНИЕ],
     [ВВЕДЕНИЕ],
     [ЗАКЛЮЧЕНИЕ],
-    [Список использованных источников],
-    [Определения, обозначения и сокращения],
-    [Обозначения и сокращения],
+    [СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ],
   ),
   specialities: (
     spec_kb: [10.05.01 --- Компьютерная безопасность],
@@ -331,21 +330,44 @@
      */
     make_toc: (info: ()) => {
       show outline.entry.where(level: 1): it => {
-        let heading = it.at("element", default: (:)).at("body", default: "")
-        if not strings.caps_headings.contains(heading) {
-          it
-          return
+        let heading-text = it
+          .at("element", default: (:))
+          .at("body", default: "")
+
+        let is-outlined = it.element.outlined
+        let is-annex = state("annex", false).at(it.element.location())
+        let is-caps = heading-text in strings.caps_headings
+
+        // TODO: Хотелось бы запретить создавать ненумерованные заголовки. По
+        // какой-то причине это не срабаотывает для самого заголовка содержания. Не
+        // понятно почему оно сюда вообще попадает.
+        // assert(is-caps or (not is-outlined) or it.element.numbering != none)
+
+        if (not (is-annex or is-caps)) {
+          return it
         }
-        grid(
-          columns: (auto, 1pt, 1fr, 1pt, auto),
-          align: (left, center, right),
-          row-gutter: 0pt,
-          rows: auto,
-          inset: 0pt,
-          heading, none, it.fill, none, it.page(),
+
+        assert(is-annex or is-caps)
+        let prefix = none
+        if is-annex {
+          prefix = [ПРИЛОЖЕНИЕ #it.prefix() #heading-text]
+        } else if is-caps {
+          prefix = heading-text + sym.space
+        }
+        link(
+          it.element.location(),
+          it.indented(
+            none,
+            prefix
+              + sym.space
+              + box(width: 1fr, it.fill)
+              + sym.space
+              + sym.wj
+              + it.page(),
+          ),
         )
       }
-      outline(indent: 2%, title: [Содержание])
+      outline(title: [СОДЕРЖАНИЕ])
     },
     /*
      * Генерирует весь документ
@@ -468,13 +490,50 @@
   ),
 )
 
+#let defabbr = {
+  heading(
+    numbering: none,
+    outlined: true,
+    [ОПРЕДЕЛЕНИЯ, ОБОЗНАЧЕНИЯ И СОКРАЩЕНИЯ],
+  )
+}
+
 #let intro = {
-  [#heading(numbering: none, outlined: true, [ВВЕДЕНИЕ]) <intro>]
+  heading(numbering: none, outlined: true, [ВВЕДЕНИЕ])
 }
 
 
 #let conclusion = {
   heading(numbering: none, outlined: true, [ЗАКЛЮЧЕНИЕ])
+}
+
+#let annex-letters = "АБВГДЕЖЗИКЛМНПРСТУФХЦШЩЭЮЯABCDEFGHJKLMNPQRSTUVWXYZ"
+#let annex-numbering(..nums) = {
+  let number = nums.pos().first() - 1
+  annex-letters.clusters().at(number, default: str(number))
+}
+
+// thx https://github.com/typst-g7-32/modern-g7-32
+#let annexes-start(it) = {
+  set heading(
+    numbering: annex-numbering,
+    outlined: true,
+  )
+  set align(center)
+
+  show heading: it => {
+    if it.depth == 1 {
+      pagebreak(weak: true)
+    }
+    set text(size: font_size)
+    let letter = counter(heading).display(annex-numbering)
+    [ПРИЛОЖЕНИЕ #letter \ #it.body #v(line_spacing / 2)]
+  }
+
+  state("annex").update(true)
+  counter(heading).update(0)
+
+  it
 }
 
 #let thm-format = thmplain.with(
