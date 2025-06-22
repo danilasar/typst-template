@@ -1,5 +1,6 @@
 #import "@preview/ctheorems:1.1.3": *
 #import "@preview/zebraw:0.5.5": zebraw, zebraw-init
+#import "@preview/subpar:0.2.2"
 
 /*
  * Примечания:
@@ -64,6 +65,7 @@
 // Переменная отвечающая за размер отступа красной строки
 #let indent = 1.25cm
 #let font_size = 14pt
+#let figure_font_size = font_size - 2pt
 // #let linespace = font_size
 #let line_spacing = 1.75em / 2
 #let styled = [#set text(red)].func()
@@ -435,12 +437,15 @@
         ],
       )
       set page(numbering: "1")
-      set math.equation(numbering: "(1)", supplement: [])
-      show figure.where(kind: image): set figure(supplement: "Рисунок")
-      show figure.where(kind: table): set figure(supplement: "Таблица")
-      show figure.where(kind: table): set figure.caption(position: top)
-      show figure.caption.where(kind: table): set align(left)
+      set math.equation(numbering: "(1)")
+
       set figure.caption(separator: [ -- ])
+      show figure.caption: set text(size: figure_font_size)
+
+      show figure.where(kind: table): set figure.caption(position: top)
+      show figure.where(kind: table): set text(size: figure_font_size)
+      show figure.where(kind: table): set block(breakable: true)
+      show figure.caption.where(kind: table): set align(left)
 
       set quote(block: true)
 
