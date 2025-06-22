@@ -1,4 +1,5 @@
 #import "@preview/ctheorems:1.1.3": *
+#import "@preview/zebraw:0.5.5": zebraw, zebraw-init
 
 /*
  * Примечания:
@@ -59,6 +60,7 @@
     undefined_spec: [*НЕИЗВЕСТНАЯ СПЕЦИАЛЬНОСТЬ*],
   ),
 )
+
 // Переменная отвечающая за размер отступа красной строки
 #let indent = 1.25cm
 #let font_size = 14pt
@@ -68,6 +70,21 @@
 #let space = [ ].func()
 #let sequence = [].func()
 
+#let code_font_size = font_size - 2pt
+// TODO: надо выяснить сколько нужно приплюсовывать к -indent без хардкода
+#let code_block_move = -indent + 11pt
+
+#let code-block-raw(code) = {
+  set text(size: code_font_size)
+  // TODO: нужно выяснить почему нужно переоборачивать raw, чтобы размер был
+  // правильным
+  move(dx: code_block_move, zebraw(raw(block: true, code.text)))
+}
+
+#let code-block(..args, code) = {
+  set text(size: code_font_size)
+  move(dx: code_block_move, zebraw(..args, code))
+}
 
 #let modules = (
   /*
@@ -393,27 +410,7 @@
 
       show: thmrules.with(qed-symbol: $square$)
       show heading: self.document.apply_heading_styles
-      show raw.where(block: true): it => {
-        set par(justify: false)
-        grid(
-          columns: (100%, 100%),
-          column-gutter: -100% - 1em,
-          block(
-            width: 100%,
-            inset: 1em,
-            for (i, line) in it.text.split("\n").enumerate() {
-              box(
-                width: 0pt,
-                align(right, str(i + 1) + h(2em)),
-              )
-              hide(line)
-              linebreak()
-            },
-          ),
-          block(width: 100%, inset: 1em, it),
-        )
-      }
-
+      show raw.where(block: true): code-block-raw
 
       set par(
         // Выравнивание по ширине
@@ -549,6 +546,11 @@
 #let theorem = thm-format("theorem", "Теорема")
 #let proof = thmproof("proof", "Доказательство")
 
+// TODO: по какой-то причине эта функция всегда вставляет пустую строку в конце
+#let source-file(file) = {
+  raw(read(file), block: true)
+}
+
 /*
  * Точка входа, просто вызывает modules.document.make
  */
@@ -562,5 +564,13 @@
   info.title = title
   info.type = type
   settings.title_page = settings.at("title_page", default: (:))
-  (modules.document.make)(modules, info: info, settings, doc)
+  (modules.document.make)(
+    modules,
+    info: info,
+    settings,
+    [
+      #show: zebraw-init.with(background-color: auto, hanging-indent: true)
+      #doc
+    ],
+  )
 }
